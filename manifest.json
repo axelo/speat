@@ -1,0 +1,28 @@
+{
+    "AppDescription": {
+        "en": "Speatit!"
+    },
+    "AppIcon": {
+        "36x18": "/assets/appicon.png"
+    },
+    "AppName": {
+        "en": "Speat"
+     },
+    "BundleIdentifier": "speat",
+    "BundleType": "Application",
+    "BundleVersion": "0.1",
+    "Dependencies": {
+        "api": "0.2.3",
+        "util": "0.1.0",
+        "resources": "0.2.2"
+    },
+    "RequiredInterface": 1,
+    "RequiredPermissions": [
+        "http://developer.echonest.com",
+        "http://echonest-analysis.s3.amazonaws.com"
+    ],
+    "SupportedLanguages": [
+        "en"
+    ],
+    "VendorIdentifier": "axelo"
+}
