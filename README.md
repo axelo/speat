@@ -2,6 +2,9 @@ speat
 =====
 Beat intensive demo/game for Spotify
 
+### Screenshots
+![Preview](http://i.imgur.com/YaY8Lge.png "Early wip preview")
+
 References
 ==========
 http://docs.echonest.com.s3-website-us-east-1.amazonaws.com/_static/AnalyzeDocumentation.pdf
