@@ -3,7 +3,7 @@ speat
 Beat intensive demo/game for Spotify
 
 ### Screenshots
-![Preview](http://i.imgur.com/AmO3Kbq.png "Early wip preview")
+![Preview](http://i.imgur.com/89WDW2e.png "Early wip preview")
 
 References
 ==========
