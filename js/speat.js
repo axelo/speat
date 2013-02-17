@@ -13,10 +13,11 @@ var analysis;
 
 var pitchCanvas;
 
-var pitch = {
-  notation: 'C',
-  baseline: 12
-}
+var colorList = [rgb(255,64,64), rgb(255,170,0), rgb(255,251,191), rgb(255,238,0), rgb(170,255,0), rgb(64,191,255), rgb(191,200,255), rgb(68,0,255), rgb(255,128,246), rgb(255,128,162), rgb(61,133,242), rgb(61,85,242), rgb(229,161,115), rgb(115,230,130), rgb(217,58,0), rgb(54,217,184), rgb(163,206,217), rgb(173,0,217), rgb(217,163,177), rgb(204,173,153), rgb(156,102,204), rgb(204,0,109), rgb(0,179,191), rgb(152,179,45), rgb(0,24,179), rgb(164,134,179), rgb(178,45,62), rgb(166,88,0), rgb(153,130,38), rgb(35,105,140), rgb(100,128,96), rgb(128,0,119), rgb(115,101,86), rgb(15,115,0), rgb(29,63,115), rgb(102,27,0), rgb(51,102,99), rgb(102,77,90), rgb(89,57,45), rgb(89,60,0), rgb(89,22,67), rgb(61,77,0), rgb(9,0,64), rgb(51,0,0), rgb(51,34,0), rgb(38,51,40), rgb(0,51,14), rgb(13,38,51)];
+
+function rgb(r, g, b) { return 'rgb(' + r + ',' + g + ',' + b + ')'; }
+
+console.log("color list length", colorList.length);
 
 $(document).ready(function() {
   console.log("speat");
@@ -43,12 +44,12 @@ $(document).ready(function() {
 
       var duration = data.track.duration * 1000; // in ms
 
-      pixelsPerMs = 1600*10 / duration;
+      pixelsPerMs = 2000*10 / duration;
 
       console.log("pixels / ms", pixelsPerMs);
 
       // mainLoop();
-      pitchCanvas = renderToCanvas(1600*10 + 800, 400, function(ctx) {
+      pitchCanvas = renderToCanvas(2000*10 + 1200, 400, function(ctx) {
         drawPitch(ctx, analysis.segments);
       });
 
@@ -68,10 +69,10 @@ function mainLoop() {
 
   var dx = player.position * pixelsPerMs;
 
-  ctx.clearRect(0, 0, 800, 400);
+  ctx.clearRect(0, 0, 1200, 400);
 
   drawPitchNotaion(ctx);
-  ctx.drawImage(pitchCanvas, dx, 0, 800, 400, 27.5, 9, 800, 400);
+  ctx.drawImage(pitchCanvas, dx, 0, 1200, 400, 27.5, 0, 1200, 400);
 
   /*ctx.clearRect(0, 0, 1600, 200);
 
@@ -143,21 +144,31 @@ function drawPitchNotaion(ctx) {
 }
 
 function drawPitch(ctx, segments) {
-  ctx.fillStyle = 'white';
+
+  var clusters = clusterSegments(segments, 0.8);
 
   var baselineSpacing = getPitchNotationBaselineSpacing(14, 400);
 
-  segments.forEach(function(segment, i) {
-    //if (i > 0) return;
+  clusters.forEach(function(cluster, clusterIndex) {
+    cluster.forEach(function(segment) {
 
-    var pitch = maxPitch(segment.pitches);
-    var xPosition = Math.round(segment.start * 1000 * pixelsPerMs);
-    var yPosition = Math.round((pitch + 1) * baselineSpacing + baselineSpacing/4 - 6);
-    var width = Math.round(segment.duration * 1000 * pixelsPerMs);
+      var xPosition = Math.floor(segment.start * 1000 * pixelsPerMs);
+      var width = Math.floor(segment.duration * 1000 * pixelsPerMs);
 
-    ctx.fillRect(xPosition, yPosition, width, 11);
+      ctx.fillStyle = colorList[clusterIndex];
+      ctx.fillRect(xPosition - 1, 0, width + 1, 400);
 
-    //console.log(xPosition + "," + yPosition + " " + width + ", 10");
+      segment.pitches.forEach(function(pitchVal, pitch) {        
+        var yPosition = Math.floor(pitch * baselineSpacing + baselineSpacing / 2 - 6);
+        
+        var cc = pitchVal;
+        ctx.fillStyle = 'rgba(255, 255, 255, ' + cc + ')';
+
+        ctx.fillRect(xPosition, yPosition, width, 11);
+      });
+
+    });
+
   });
 }
 
@@ -186,5 +197,44 @@ var renderToCanvas = function (width, height, renderFunction) {
   renderFunction(buffer.getContext('2d'));
   return buffer;
 };
+
+function euclidianNorm(vs) {
+  var norm = 0;
+  vs.forEach(function(v) {
+    norm += v * v;
+  });
+  return Math.sqrt(norm);
+}
+
+
+function clusterSegments(segments, tolerance) {
+  segments.forEach(function(segment) {
+    segment.metric = euclidianNorm(segment.timbre);
+  });
+
+  segments.sort(function(a,b) {
+    return a.metric - b.metric;
+  });
+  
+  var clusters = [[]];
+  var lastMetric = segments[0].metric;
+
+  segments.forEach(function(segment) {
+    if (!isWithinTolerance(segment.metric, lastMetric, tolerance)) clusters.push([]);
+
+    clusters[clusters.length - 1].push(segment);
+
+    lastMetric = segment.metric;
+  });
+
+  console.log("num of clusters", clusters.length);
+  console.log("clusters", clusters);
+
+  return clusters;
+}
+
+function isWithinTolerance(newMetric, currentMetric, tolerance) {
+  return Math.abs(newMetric - currentMetric) <= tolerance;
+}
 
 }());
