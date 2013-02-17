@@ -28,7 +28,7 @@ $(document).ready(function() {
   var artist = currentTrack.artists[0];
   var title = currentTrack.name;
 
-  getSongAnalysis(echonestApiKey, artist, title)
+  getSongAnalysis(echonestApiKey, currentTrack.uri)
     .done(function( data ) {
       console.log("OMG", data);
 
@@ -48,7 +48,6 @@ $(document).ready(function() {
 
       console.log("pixels / ms", pixelsPerMs);
 
-      // mainLoop();
       pitchCanvas = renderToCanvas(2000*10 + 1200, 400, function(ctx) {
         drawPitch(ctx, analysis.segments);
       });
@@ -84,22 +83,16 @@ function mainLoop() {
   drawTrackPositionBar();*/
 }
 
-function getSongAnalysis(api, artist, title) {
-  return $.getJSON(searchSongUrl(api, artist, title))
-      .pipe(function(data) {
-        return $.getJSON(songAudioSummaryUrl(api, data.response.songs[0].id));
-      })
+function getSongAnalysis(api, trackUri) {
+  return $.getJSON(songAudioSummaryUrl(api, trackUri))
       .pipe(function(data) {
         return $.getJSON(data.response.songs[0].audio_summary.analysis_url);
       });
 }
 
-function searchSongUrl(api, artist, title) {
-  return encodeURI('http://developer.echonest.com/api/v4/song/search?api_key=' + api + '&title=' + title + '&artist=' + artist);
-}
-
-function songAudioSummaryUrl(api, id) {
-  return encodeURI('http://developer.echonest.com/api/v4/song/profile?api_key=' + api + '&format=json&id=' + id + '&bucket=audio_summary');
+function songAudioSummaryUrl(api, trackUri) {  
+  trackUri = trackUri.replace('spotify', 'spotify-WW')
+  return encodeURI('http://developer.echonest.com/api/v4/song/profile?api_key=' + api + '&format=json&track_id=' + trackUri + '&bucket=audio_summary');
 }
 
 function drawTrackPositionBar() {
